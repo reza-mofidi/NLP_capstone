@@ -1,0 +1,191 @@
+---
+title: "Data Sciences Capstone Project Milestone Report"
+author: "R Mofidi"
+date: "25/08/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Milestone Report
+
+### Background
+
+In the last decade people have started spending ever increasing amount of time on their mobile devices, performing a range of activities including accessing social networking sites, email, reading published contents such as books and newspapers. Typing on the go and on mobile devices can be a serious challenge. Predictive texting is crucial for easing such tasks. SwiftKey, builds a smart keyboard that makes it easier for people to type on their mobile devices, through the use of predictive texting.
+
+This capstone project involves analyzing and cleaning a large body ‘corpus’ of text documents to discover the structure in the data and how words are put together. This will form a resource from which build a predictive text product.
+
+The milestone report covers the first part of this activity which includes the following steps
+
+1-      R packages used in the project
+
+2-      The data source and downloading
+
+3-      Preliminary data analysis
+
+4-      Preprocessing steps
+
+5-      Creating NGrams and visualising the data
+
+##  R packages used in the project
+
+The following R packages were used in this project. They include the "tm" package, the "NLP" package and the "quanteda" packages. 
+
+```{r, echo=FALSE}
+library (NLP); library(tm); library(quanteda); library(dplyr); library(tidytext); library(ggplot2); library(ngram); library(stringi); library(wordcloud); library(tokenizers);library(magrittr); 
+```
+
+## Downloading the data
+The dataset used for this project involves a alarge body of text in 4 languages including English, Finnish, German and russian. The folder containing US English text is used for further analysis "en_US. This report is an exploratory analysis of the  data supplied for training the model used for the capstone project. 
+
+```{r}
+if(!file.exists("~/data")){dir.create("~/data")}
+fileUrl <- "https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip"
+download.file(fileUrl,destfile="~/data/capstone.zip")
+if(!file.exists("~/data/capstone.zip")){
+  unzip("~/data/capstone.zip", exdir="~/data")
+}
+```
+
+
+## Read the files datset
+
+This folder includes 3 large txt files including blogs, news and twitter messages. The blogs represent colloquial English, the news represents formal English and Twitter messages represent abbreviated informal English. The following table lists the file sizes in bytes, the number of words and number of words per line for each class of text file. 
+
+```{r}
+##read US English the text files 
+blogs <- readLines("~/data/final/en_US/en_US.blogs.txt", encoding="UTF-8", warn=FALSE, skipNul=TRUE)
+news <- readLines("~/data/final/en_US/en_US.news.txt", encoding="UTF-8", warn=FALSE, skipNul=TRUE)
+twitter <- readLines("~/data/final/en_US/en_US.twitter.txt", encoding="UTF-8", warn=FALSE, skipNul=TRUE)
+
+##blogs
+blog_line<- length(blogs); blogs_size<- object.size(blogs); 
+Blog_words<- sum(sapply(strsplit(blogs,"\\s+"),length))
+Bl_words_per_line<- round(Blog_words/blog_line,2)
+
+##news
+news_line<- length(news); news_size<- object.size(news); 
+News_words<- sum(sapply(strsplit(news,"\\s+"),length))
+NWS_words_per_line<- round(News_words/news_line,2)
+
+##twitter
+twitter_line<- length(twitter); twitter_size<- object.size(twitter); 
+twitter_words<- sum(sapply(strsplit(twitter,"\\s+"),length))
+twt_words_per_line<- round(twitter_words/twitter_line,2)
+
+Lines<- rbind(blog_line, news_line, twitter_line)
+Size<- rbind(blogs_size,news_size, twitter_size)
+Words<- rbind(Blog_words, News_words, twitter_words)
+Word_per_line<- rbind(Bl_words_per_line, NWS_words_per_line, twt_words_per_line)
+
+table1<- cbind(Lines, Size, Words, Word_per_line)
+row.names(table1)<- c("Blogs", "News", "Twitter")
+colnames(table1)<- c('number of lines', 'Size', 'total number of words', 'Words per line')
+table1
+```
+
+
+## Create a corpus of text for analysis
+
+A corpus is language resource which cinsists of a large body of structured text which can be  analysed in order to validate linguistic rules or for NLP. 
+
+```{r}
+SampleB<- sample(blogs, round(length(blogs)*0.025))
+SampleN <- sample(news, round(length(news)*0.025))
+SampleT <- sample(twitter, round(length(twitter)*0.025))
+text_sample <- paste(SampleB,SampleN,SampleT)
+
+documents<- Corpus(VectorSource(text_sample))
+
+documents <- tm_map(documents, content_transformer(tolower))
+documents <- tm_map(documents, stripWhitespace)
+documents <- tm_map(documents, removePunctuation)
+documents <- tm_map(documents, removeNumbers)
+```
+
+## Simple data visualisation
+
+N-grams are a contiguus sequence of N items from a given sample of text or speech. N grams can be phenomes, syllables, letters or words. They can be unitgrams bigrams or trigrams, where the prefix N also denotes their size in the number of words. *N-grams* are essentially a probobalistic language model and are used to predict the next item in a sequene of model. N-grams are basically a n-1 Markov model. In the following example I used Ngram Tokenizer function which breaksdown the text into words when it encounters a list of specified  characters and then plotted unigrams, bigrams and trigrams by the frequency they appear in the sample curpus. The following word clouds illustrate the frquently used words in the sample corpus of test as well as individual word clouds pertaining to the sample texts from blogs, news and tweets.
+
+### Sample text Corpus word cloud
+
+```{r}
+wordcloud(documents, max.words=200, random.order=FALSE,colors= brewer.pal(8, "Dark2"))
+```
+
+### Sample Blog Corpus word cloud
+
+```{r}
+BLOG<- Corpus(VectorSource(SampleB))
+wordcloud(BLOG, max.words=200, random.order=FALSE,colors= brewer.pal(8, "Dark2"))
+```
+
+### Sample News Corpus word cloud
+
+```{r}
+NEWS<- Corpus(VectorSource(SampleN))
+wordcloud(NEWS, max.words=200, random.order=FALSE,colors= brewer.pal(8, "Dark2"))
+```
+
+### Sample Tweets Word cloud
+
+```{r}
+TWEET<- Corpus(VectorSource(SampleT))
+wordcloud(TWEET, max.words=200, random.order=FALSE,colors= brewer.pal(8, "Dark2"))
+```
+
+## Unigrams
+
+The following plot illustrates the most common words used in the sample corpus of text used in this document. The approach used to do this was using unigram (single word Ngram) tokenization using initially the "ngram_asweka" function from the ngram package (which does not remove the stopwords) and then the the 'tokenize_ngrams' function of the Tokenizers package. 
+
+### word frequency including the stopwords
+
+```{r}
+unigram <- function(x) ngram_asweka(x, min = 1, max = 2, sep = " ")
+tdm<-TermDocumentMatrix(documents,control=list(wordLengths=c(1,Inf), tokenize=unigram))
+unigramCorpus<- findFreqTerms(tdm, lowfreq=1000)
+unigramCorpusN<- rowSums(as.matrix(tdm[unigramCorpus,]))
+unigramCorpusT<- data.frame(Word=names(unigramCorpusN), frequency=unigramCorpusN)
+UnigramSort<- unigramCorpusT[order(-unigramCorpusT$frequency),]
+```
+
+### word frequency excluding the stopwords 
+
+```{r}
+unigram<- tokenize_ngrams(text_sample, n=1, n_min =1, stopwords=stopwords::stopwords("en"))
+unigram.df<- data.frame(V1= as.vector(names(table(unlist(unigram)))), V2= as.numeric(table(unlist(unigram))))
+names(unigram.df)<-c("word", "frequency")                                                      
+unigramSort<- unigram.df[with(unigram.df, order(-unigram.df$frequency)),]
+ggplot(unigramSort[1:20,])+ geom_point(aes(x=reorder(word, -frequency), y=frequency))+ labs(x="Words in order of frequency")
+```
+
+### Bigrams
+
+Bigrams are 2 word n-grams. The following plot illustrates the frequency of top 20 most frequent ngrams used in the sample corpus of data.
+
+```{r}
+bigram<-  tokenize_ngrams(text_sample, n=2, n_min =2, stopwords=stopwords::stopwords("en"))
+bigram.df<- data.frame(V1= as.vector(names(table(unlist(bigram)))), V2= as.numeric(table(unlist(bigram))))
+names(bigram.df)<-c("word", "frequency")                                                      
+bigramSort<- bigram.df[with(bigram.df, order(-bigram.df$frequency)),]
+ggplot(bigramSort[1:20,])+ geom_point(aes(x=reorder(word, -frequency), y=frequency))+ labs(x="Bi-grams in order of frequency")
+```
+
+### Trigrams
+
+The last analysis perofrmed in this report is analysis of frequency of the trigrams or three consecutive word segments of the sample corpus of text. 
+
+```{r}
+trigram<-  tokenize_ngrams(text_sample, n=3, n_min =3, stopwords=stopwords::stopwords("en"))
+trigram.df<- data.frame(V1= as.vector(names(table(unlist(trigram)))), V2= as.numeric(table(unlist(trigram))))
+names(trigram.df)<-c("word", "frequency")                                                      
+trigramSort<- trigram.df[with(trigram.df, order(-trigram.df$frequency)),]
+ggplot(trigramSort[1:20,])+ geom_point(aes(x=reorder(word, -frequency), y=frequency))+ labs(x="Tri-grams in order of frequency")
+```
+## Conclusions
+
+The above data analysis through the use of ngrams has been very helpful in forming a training dataset for predicting the next word occuring. Following this preliminary data analysis I aim to  improvethe quality of n-grams and use them to develope a markov-chain model to  predict the frequency of unobserved n-grams. This can then be used to develop a word prediction model. 
+This model will then be implemented into a shinyapp to form a user friendly interface for the app. 
+
