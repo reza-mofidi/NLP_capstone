@@ -1,0 +1,57 @@
+---
+title: "The Predict word App"
+subtitle: "Natural Language Processing with R"
+author: "Reza Mofidi"
+date: "29/09/2020"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Why Predict the next word? 
+
+Around the world people are using mobile devices for a whole range of activites. This means a significant amount of typing text.
+
+The small screen and touch screen keyboards are not as ergonomic making typing a text beyond a short paragraph challenging. 
+
+Any app which can facilitate this process is helpful. 
+
+The app described here predicts the next word using the previous words typed in a sentence. This Shiny application is available on:
+
+https://reza-mofidi.shinyapps.io/Predict_word/
+
+## The Implementation
+### The dataset 
+- The dataset includes 3 large text files including blogs, news and twitter messages. 
+- Blogs represent colloquial English, the news represents formal English and Twitter messages represent abbreviated informal English.
+- The dataset can be obtained from:
+
+https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip
+
+## Preprocessing and model creation
+
+- *Creating a large corpus of text:* A corpus consists of a large body of structured text. It is  analysed in order to validate linguistic rules or as part of Natural Language Programming. Creating a corpus involves necessary steps such as  removing punctuation, capital letters and white spaces. 
+
+- *Creating Ngrams:* unigrams, bigrams, trigrams, tetragrams and pentagrams are created using the Ngram Tokenizer package. Due to limitation in amount of storage and working memory for the proposes of this project only 10-percent of the available body of data was used to create the NGrams. which were stored as .rds files
+
+- *The predict word app:* uses ngrams and Back off method to predict the next word in a piece of text being typed. The user provides a word or a phrase of n words and the app gives a list of 10 possible words which best match the repos. 
+
+## Benefits of this App
+
+### Key Features
+
+- A text box for inputting the data.
+
+- Dynamic output produces the word predictions as the input is being entered.
+
+- 10 word choice of possible next words are given.
+
+- The model in its current form is fast. 
+
+You can access the model in the following Git-hub repository:
+
+https://github.com/reza-mofidi/CAPstone
+
+
